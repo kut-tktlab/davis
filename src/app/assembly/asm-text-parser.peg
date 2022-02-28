@@ -5,8 +5,7 @@ Start =
     data:
     (
     	"section"i _ ".data"i  Comment? __
-    	data:(data:DataLine { return { line: data, location: location() }; })*
-    	{ return data; }
+    	([^\n]* __)*
     )?
     __
     text:
@@ -21,11 +20,9 @@ Start =
         { return text; }
     )?
     __
-    data:
     (
     	"section"i _ ".data"i  Comment? __
-    	data:(data:DataLine { return { line: data, location: location() }; })*
-    	{ return data; }
+    	([^\n]* __)*
     )?
     { return { data: data !== null ? data : [], text: text !== null ? text : []}; }
 

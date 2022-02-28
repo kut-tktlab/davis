@@ -42,6 +42,21 @@ export class ALU
     return this.add(op1, this.normalize(-op2), previousCarry, true);
   }
 
+  divide(dividend: number, divisor: number): { value: number, remainder: number }
+  {
+    dividend = this.normalize(dividend) >>> 0;
+    divisor = this.normalize(divisor) >>> 0;
+
+    if (divisor === 0)
+    {
+      throw new RuntimeException("Division by zero");
+    }
+
+    return {
+      value: this.normalize(dividend / divisor),
+      remainder: this.normalize(dividend % divisor)
+    };
+  }
   idivide(dividend: number, divisor: number): { value: number, remainder: number }
   {
     dividend = this.normalize(dividend);
@@ -55,6 +70,20 @@ export class ALU
     return {
       value: this.normalize(dividend / divisor),
       remainder: this.normalize(dividend % divisor)
+    };
+  }
+  multiply(op1: number, op2: number): { lowerHalf: number, upperHalf: number }
+  {
+    op1 = this.normalize(op1) >>> 0;
+    op2 = this.normalize(op2) >>> 0;
+
+    let result: number = op1 * op2;
+    let lowerHalf: number = result & 0xFFFFFFFF;
+    let upperHalf = result / Math.pow(2, 32);
+
+    return {
+      lowerHalf: this.normalize(lowerHalf),
+      upperHalf: this.normalize(upperHalf)
     };
   }
   imultiply(op1: number, op2: number): { lowerHalf: number, upperHalf: number }

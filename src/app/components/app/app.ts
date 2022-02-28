@@ -28,6 +28,7 @@ export class AppComponent implements AfterViewInit
     ngAfterViewInit()
     {
         this.asmEditor.text =
+/*
 `section .data
 hello:
     db 'Hello world!', 10, 0
@@ -61,6 +62,29 @@ factorial:
     LEAVE
     RET
 `
+*/
+`	;; data1の中の100以上の数の個数を出力
+section .text
+global  _start
+_start:
+	mov	ebx, 0		; 100以上の個数
+	mov	ecx, data1
+	mov	edx, 0		; 判定を行った回数
+loop:
+	mov	eax, [ecx]
+	cmp	eax, 100
+	jl	jump		; 判定:100未満だとジャンプ
+	inc	ebx
+jump:
+	add	ecx, 4		; 次の番地へ
+	inc	edx			; 一つカウント
+	cmp	edx, 7  	; 全て数えたなら終わる
+	jge	end
+	jmp	loop
+end:
+
+section .data
+data1:	dd	3, 141, 592, 6, 53, 5, 897`
         ;
     }
 
@@ -115,6 +139,19 @@ factorial:
                         start++;
                     }
                     this.print(data);
+                    break;
+                }
+                case Interrupt.SYSTEMCALL:
+                {
+                    let service: number = this.cpu.getRegisterByName("EAX").getValue();
+                    if (service === 1)
+                    {
+                        this.cpu.halt();
+                    }
+                    else if (service === 4)
+                    {
+                        //
+                    }
                     break;
                 }
                 default:

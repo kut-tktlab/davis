@@ -9,6 +9,7 @@ import {EventEmitter} from "@angular/core";
 import {RuntimeException} from "./runtime-exception";
 import {ConditionUnit} from "./condition-unit";
 import {StatusWord} from "./status-word";
+import { AssemblyException } from "../assembly/assembler";
 
 class RegisterInfo
 {
@@ -46,34 +47,58 @@ class RegisterInfo
 export enum Interrupt
 {
     WRITE_NUM = 1,
-    WRITE_STRING = 2
+    WRITE_STRING = 2,
+    SYSTEMCALL = 128
 }
 
 export const REGISTER_INDEX: any = {
     NULL    : new RegisterInfo(0, 0, 4),
     EIP     : new RegisterInfo(1, 1, 4),
+    eip     : new RegisterInfo(1, 1, 4),
     EBP     : new RegisterInfo(2, 2, 4),
+    ebp     : new RegisterInfo(2, 2, 4),
     ESP     : new RegisterInfo(3, 3, 4),
+    esp     : new RegisterInfo(3, 3, 4),
     ESI     : new RegisterInfo(4, 4, 4),
+    esi     : new RegisterInfo(4, 4, 4),
     SI      : new RegisterInfo(5, 4, 2),
+    si      : new RegisterInfo(5, 4, 2),
     EDI     : new RegisterInfo(6, 5, 4),
+    edi     : new RegisterInfo(6, 5, 4),
     DI      : new RegisterInfo(7, 5, 2),
+    di      : new RegisterInfo(7, 5, 2),
     EAX     : new RegisterInfo(20, 6, 4),
+    eax     : new RegisterInfo(20, 6, 4),
     AX      : new RegisterInfo(21, 6, 2),
+    ax      : new RegisterInfo(21, 6, 2),
     AH      : new RegisterInfo(22, 6, 1, 1),
+    ah      : new RegisterInfo(22, 6, 1, 1),
     AL      : new RegisterInfo(23, 6, 1),
+    al      : new RegisterInfo(23, 6, 1),
     EBX     : new RegisterInfo(24, 7, 4),
+    ebx     : new RegisterInfo(24, 7, 4),
     BX      : new RegisterInfo(25, 7, 2),
+    bx      : new RegisterInfo(25, 7, 2),
     BH      : new RegisterInfo(26, 7, 1, 1),
+    bh      : new RegisterInfo(26, 7, 1, 1),
     BL      : new RegisterInfo(27, 7, 1),
+    bl      : new RegisterInfo(27, 7, 1),
     ECX     : new RegisterInfo(28, 8, 4),
+    ecx     : new RegisterInfo(28, 8, 4),
     CX      : new RegisterInfo(29, 8, 2),
+    cx      : new RegisterInfo(29, 8, 2),
     CH      : new RegisterInfo(30, 8, 1, 1),
+    ch      : new RegisterInfo(30, 8, 1, 1),
     CL      : new RegisterInfo(31, 8, 1),
+    cl      : new RegisterInfo(31, 8, 1),
     EDX     : new RegisterInfo(32, 9, 4),
+    edx     : new RegisterInfo(32, 9, 4),
     DX      : new RegisterInfo(33, 9, 2),
+    dx      : new RegisterInfo(33, 9, 2),
     DH      : new RegisterInfo(34, 9, 1, 1),
-    DL      : new RegisterInfo(35, 9, 1)
+    dh      : new RegisterInfo(34, 9, 1, 1),
+    DL      : new RegisterInfo(35, 9, 1),
+    dl      : new RegisterInfo(35, 9, 1)
 
 };
 
@@ -185,6 +210,8 @@ export class CPU
         if (this.isFinished())
         {
             this.halt();
+            //throw new Error("Invalid finish method: Please call exit system call");
+            //throw new AssemblyException("Invalid finish method: Please call exit system call");
             return;
         }
 

@@ -53,6 +53,27 @@ export class Decrement extends UnaryWriteOperation
     }
 }
 
+export class DivideUnsigned extends UnaryReadOperation
+{
+    public execute(cpu: CPU): number
+    {
+        if (this.target.getValue() === 0)
+        {
+            throw new RuntimeException("Division by zero");
+        }
+
+        let edx = cpu.getRegisterByName("EDX").getValue();
+        let eax = cpu.getRegisterByName("EAX").getValue();
+
+        let value: number = cpu.alu.extend64bit(eax, edx);
+        let result: { value: number, remainder: number } = cpu.alu.divide(value, this.target.getValue());
+
+        cpu.getRegisterByName("EDX").setValue(result.remainder);
+        cpu.getRegisterByName("EAX").setValue(result.value);
+
+        return cpu.getNextInstruction();
+    }
+}
 export class DivideSigned extends UnaryReadOperation
 {
     public execute(cpu: CPU): number
@@ -70,6 +91,19 @@ export class DivideSigned extends UnaryReadOperation
 
         cpu.getRegisterByName("EDX").setValue(result.remainder);
         cpu.getRegisterByName("EAX").setValue(result.value);
+
+        return cpu.getNextInstruction();
+    }
+}
+export class MultiplyUnsigned extends UnaryReadOperation
+{
+    public execute(cpu: CPU): number
+    {
+        let eax = cpu.getRegisterByName("EAX").getValue();
+        let result: { lowerHalf: number, upperHalf: number } = cpu.alu.multiply(eax, this.target.getValue());
+
+        cpu.getRegisterByName("EDX").setValue(result.upperHalf);
+        cpu.getRegisterByName("EAX").setValue(result.lowerHalf);
 
         return cpu.getNextInstruction();
     }

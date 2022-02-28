@@ -17,7 +17,7 @@ import {Push} from "../emulation/instruction/push";
 import {Call, Return, Enter, Leave} from "../emulation/instruction/retcall";
 import {Compare} from "../emulation/instruction/cmp";
 import {
-    Add, AddWithCarry, Sub, SubWithBorrow, DivideSigned, MultiplySigned,
+    Add, AddWithCarry, Sub, SubWithBorrow, DivideUnsigned, DivideSigned, MultiplyUnsigned, MultiplySigned,
     Decrement, Increment
 } from "../emulation/instruction/arithmetic";
 import {And, Or, Xor} from "../emulation/instruction/bitwise";
@@ -26,71 +26,140 @@ import {SetDirection, ClearDirection, SetCarry, ClearCarry} from "../emulation/i
 import {Halt} from "../emulation/instruction/halt";
 
 import parser from "./asm-parser.peg";
+//import textParser from "./asm-text-parser.peg";
+//import dataParser from "./asm-data-parser.peg";
 
 const InstructionMapping = {
     "MOV":      Move,
+    "mov":      Move,
     "INT":      Interrupt,
+    "int":      Interrupt,
     "HLT":      Halt,
+    "hlt":      Halt,
     "POP":      Pop,
+    "pop":      Pop,
     "PUSH":     Push,
+    "push":     Push,
     "CALL":     Call,
+    "call":     Call,
     "RET":      Return,
+    "ret":      Return,
     "ENTER":    Enter,
+    "enter":    Enter,
     "LEAVE":    Leave,
+    "leave":    Leave,
     "LOOP":     Loop,
+    "loop":     Loop,
     "LOOPE":    LoopE,
+    "loope":    LoopE,
     "LOOPZ":    LoopE,
+    "loopz":    LoopE,
     "LOOPNE":   LoopNE,
+    "loopne":   LoopNE,
     "LOOPNZ":   LoopNE,
+    "loopnz":   LoopNE,
     "JMP":      Jump,
+    "jmp":      Jump,
     "CMP":      Compare,
+    "cmp":      Compare,
     "JO":       JumpO,
+    "jo":       JumpO,
     "JNO":      JumpNO,
+    "jno":      JumpNO,
     "JS":       JumpS,
+    "js":       JumpS,
     "JNS":      JumpNS,
+    "jns":      JumpNS,
     "JE":       JumpE,
+    "je":       JumpE,
     "JZ":       JumpE,
+    "jz":       JumpE,
     "JNE":      JumpNE,
+    "jne":      JumpNE,
     "JNZ":      JumpNE,
+    "jnz":      JumpNE,
     "JB":       JumpB,
+    "jb":       JumpB,
     "JNAE":     JumpB,
+    "jnae":     JumpB,
     "JC":       JumpB,
+    "jc":       JumpB,
     "JNB":      JumpAE,
+    "jnb":      JumpAE,
     "JAE":      JumpAE,
+    "jae":      JumpAE,
     "JNC":      JumpAE,
+    "jnc":      JumpAE,
     "JBE":      JumpBE,
+    "jbe":      JumpBE,
     "JNA":      JumpBE,
+    "jna":      JumpBE,
     "JA":       JumpA,
+    "ja":       JumpA,
     "JNBE":     JumpA,
+    "jnbe":     JumpA,
     "JL":       JumpL,
+    "jl":       JumpL,
     "JNGE":     JumpL,
+    "jnge":     JumpL,
     "JGE":      JumpGE,
+    "jge":      JumpGE,
     "JNL":      JumpGE,
+    "jnl":      JumpGE,
     "JLE":      JumpLE,
+    "jle":      JumpLE,
     "JNG":      JumpLE,
+    "jng":      JumpLE,
     "JG":       JumpG,
+    "jg":       JumpG,
     "JNLE":     JumpG,
+    "jnle":     JumpG,
     "JP":       JumpP,
+    "jp":       JumpP,
     "JPE":      JumpP,
+    "jpe":      JumpP,
     "JNP":      JumpNP,
+    "jnp":      JumpNP,
     "JPO":      JumpNP,
+    "jpo":      JumpNP,
     "JCXZ":     JumpCXZ,
+    "jcxz":     JumpCXZ,
     "JECXZ":    JumpECXZ,
+    "jecxz":    JumpECXZ,
     "ADD":      Add,
+    "add":      Add,
     "ADC":      AddWithCarry,
+    "adc":      AddWithCarry,
     "SUB":      Sub,
+    "sub":      Sub,
     "SBB":      SubWithBorrow,
+    "sbb":      SubWithBorrow,
+    "DIV":      DivideUnsigned,
+    "div":      DivideUnsigned,
     "IDIV":     DivideSigned,
+    "idiv":     DivideSigned,
+    "MUL":      MultiplyUnsigned,
+    "mul":      MultiplyUnsigned,
     "IMUL":     MultiplySigned,
+    "imul":     MultiplySigned,
     "DEC":      Decrement,
+    "dec":      Decrement,
     "INC":      Increment,
+    "inc":      Increment,
     "AND":      And,
+    "and":      And,
     "OR":       Or,
+    "or":       Or,
     "XOR":      Xor,
+    "xor":      Xor,
     "STD":      SetDirection,
+    "std":      SetDirection,
     "CLD":      ClearDirection,
+    "cld":      ClearDirection,
     "STC":      SetCarry,
-    "CLC":      ClearCarry
+    "stc":      SetCarry,
+    "CLC":      ClearCarry,
+    "clc":      ClearCarry
 };
 
 export class AssemblyException extends Error
@@ -132,10 +201,14 @@ export class Assembler
     assemble(program: string): Program
     {
         let parsedProgram: {text: any[], data: any[]};
+        let parsedText: {text: any[], data: any[]};
+        let parsedData: {text: any[], data: any[]};
 
         try
         {
             parsedProgram = parser.parse(program);
+            //parsedText = textParser.parse(program);
+            //parsedData = dataParser.parse(program);
         }
         catch (e)
         {
@@ -144,7 +217,9 @@ export class Assembler
 
         let assemblyData: AssemblyData = new AssemblyData();
         let memoryDefinitions: MemoryDefinition[] = this.assembleDataSegment(parsedProgram.data, assemblyData);
+        //let memoryDefinitions: MemoryDefinition[] = this.assembleDataSegment(parsedData.data, assemblyData);
         let instructions: EncodedInstruction[] = this.assembleTextSegment(parsedProgram.text, assemblyData);
+        //let instructions: EncodedInstruction[] = this.assembleTextSegment(parsedText.text, assemblyData);
 
         assemblyData.labelResolver.resolveAddresses();
 

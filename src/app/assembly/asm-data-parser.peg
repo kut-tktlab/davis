@@ -2,23 +2,10 @@ Start =
     __
     (Comment __)*
     __
-    data:
-    (
-    	"section"i _ ".data"i  Comment? __
-    	data:(data:DataLine { return { line: data, location: location() }; })*
-    	{ return data; }
-    )?
-    __
     text:
     (
     	"section"i _ ".text"i Comment? __
-        (Comment __)*
-        Global? __
-        (Comment __)*
-        Extern? __
-        (Comment __)*
-        text:(text:TextLine { return { line: text, location: location() }; })*
-        { return text; }
+        ([^\n]* __)*
     )?
     __
     data:
@@ -26,6 +13,11 @@ Start =
     	"section"i _ ".data"i  Comment? __
     	data:(data:DataLine { return { line: data, location: location() }; })*
     	{ return data; }
+    )?
+    __
+    (
+    	"section"i _ ".text"i Comment? __
+        ([^\n]* __)*
     )?
     { return { data: data !== null ? data : [], text: text !== null ? text : []}; }
 
